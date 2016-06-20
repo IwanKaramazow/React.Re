@@ -1,0 +1,9 @@
+
+B _build_byte_debug/ReasonExampleProject/publicInnerModules
+B _build_byte_debug/ReasonExampleProject/privateInnerModules
+B _build_byte_debug/ReasonExampleProject
+
+PKG js_of_ocaml
+FLG  -open ReasonExampleProject
+SUFFIX .re .rei
+
