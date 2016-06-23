@@ -2,7 +2,7 @@ const { exec } = require('child_process');
 const sane = require('sane');
 
 const src = `${__dirname}/src`;
-const compile_command = 'node ./node_modules/CommonML/build.js --forDebug=true --jsCompile=true';
+const compile_command = 'node_modules/.bin/compile';
 
 const watcher = sane(src);
 
