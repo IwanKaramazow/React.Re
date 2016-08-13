@@ -1,38 +1,39 @@
 
+open Lwt;
+
+open Cohttp;
+
+open Cohttp_lwt_unix;
 
 open React;
 
-open React.DOM;
+type counterProps = {initialCount: int};
 
-type jsObject = Js.Unsafe.any;
-
-let module Counter = React.CreateComponent {
-  type props = string;
-  type underlyingJsProps = Js.t Js.js_string;
-  let props_to_js props => Js.string props;
-  let props_from_js js_props => Js.to_string js_props;
-  type state = {counter: int};
-  type underlyingJsState = jsObject;
-  let state_to_js {counter} => Js.Unsafe.obj [|("counter", Js.Unsafe.inject counter)|];
-  let state_from_js js_state => {
-    let count = Js.Unsafe.get js_state "counter";
-    {counter: count}
-  };
-  let getInitialState () => {counter: 1};
-  let handleClick {counter} evt => {counter: counter + 1};
-  let render props state updater => Div.make [
-    Component (Button.make children::[Text "Increment!"] onClick::(updater handleClick)),
-    Text ("State: " ^ string_of_int state.counter)
-    /* Text ("Props: " ^ props) */
+let module Counter = CreateComponent {
+  include Stateless {type props = counterProps;};
+  let render {props: {initialCount}} => DOM.Div.make [
+    Text.make ("Initial count (from props): " ^ string_of_int initialCount)
   ];
 };
 
-let title title => H3.make [Text title];
+type titleProps = string;
 
-let counter = Counter.make "Those are some string props";
+let module Title = CreateComponent {
+  include Stateless {type props = titleProps;};
+  let render {props} => DOM.H3.make [Text.make ("Title: " ^ props)];
+};
 
-let app = Div.make [Component (title "Counter example"), Component counter];
+let app = DOM.Div.make [
+  Title.make "Native server side rendering!" [],
+  Counter.make {initialCount: 0} [],
+  DOM.Div.make [Text.make "Another div"]
+];
 
-let root_node = Dom_html.getElementById "app";
+let html = React.render app;
 
-ReactDOM.render component::app node::root_node;
+let server = {
+  let callback _conn req body => Server.respond_string status::`OK body::html ();
+  Server.create mode::(`TCP (`Port 8000)) (Server.make callback::callback ())
+};
+
+let () = ignore (Lwt_main.run server);

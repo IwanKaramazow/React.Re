@@ -1,11 +1,12 @@
 {
   "name": "React.RE",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Typed React bindings for Reason.",
   "license": "BSD",
   "jengaboot": {
     "ocamlfindDependencies": {
-      "js_of_ocaml": "*"
+      "cohttp.lwt": "*",
+      "lwt": "*"
     }
   },
   "devDependencies": {

@@ -1,130 +1,120 @@
 
-type component = Js.Unsafe.any;
+type reactInstance 'props 'state = {props: 'props, state: 'state};
 
-type children = | Text of string | Component of component;
+/* opaqueReactInstance => Gadt wrapped descriptor, helpfull when returning GADTs that hide their heterogeneous types */
+type opaqueReactInstance = | OpaqueInstance of (reactInstance 'p 's) :opaqueReactInstance;
 
-let react = Js.Unsafe.js_expr {|
-    require("react")
-  |};
+type element 'props 'state = {form: form 'props 'state, children: list opaqueElement}
+and opaqueElement = | OpaqueElement of (element 'props 'state) :opaqueElement
+and elementDescription 'props 'state = {
+  initProps: 'props,
+  getInitialState: 'props => 'state,
+  componentWillMount: reactInstance 'props 'state => 'state,
+  render: reactInstance 'props 'state => opaqueElement,
+  createInstanceFromElement: elementDescription 'props 'state => opaqueReactInstance
+}
+and form 'props 'state =
+  | DOMElement of string | ReactElement of (elementDescription 'props 'state) | TextNode of string;
 
-let module DOM = {
-  let dom = Js.Unsafe.get react "DOM";
-  type react_children = array Js.Unsafe.any;
-  type tag = string;
-  type props = array Js.Unsafe.any;
+/* let unpack: opaqueElement => element = fun opaque => sw */
+/*type opaqueElement is a GADT wrapped descriptor, helpfull when returning GADTs that hide their heterogeneous types */
+let module Text = {
+  let make: type a. string => opaqueElement =
+    fun t => OpaqueElement {form: TextNode t, children: []};
+};
 
-  let createDomElement: tag => props => react_children => 'a =
-    fun name props children =>
-      Js.Unsafe.fun_call (Js.Unsafe.get dom (Js.string name)) (Array.append props children);
-  module type DomTag = {let tag: tag;};
-  /* Functor to generate React.DOM.* */
-  let module CreateDomComponent (D: DomTag) => {
-    let make: onClick::(unit => unit)? => children::list children => component =
-      fun onClick::onClick=? children::children => {
-        let react_children = Array.of_list (
-          List.map
-            (
-              fun x =>
-                switch x {
-                | Text t => Js.Unsafe.inject (Js.string t)
-                | Component c => Js.Unsafe.inject c
-                }
-            )
-            children
-        );
-        let props =
-          switch onClick {
-          | None => [|Js.Unsafe.inject Js.null|]
-          | Some fn => [|
-              Js.Unsafe.obj [|("onClick", Js.Unsafe.inject (Js.wrap_meth_callback fn))|]
-            |]
-          };
-        createDomElement D.tag props react_children
-      };
-  };
-  let module Div = CreateDomComponent {
-    let tag = "div";
-  };
-  let module H3 = CreateDomComponent {
-    let tag = "h3";
-  };
-  let module Button = CreateDomComponent {
-    let tag = "button";
+module type DOMComponent = {let tag: string; let make: list opaqueElement => opaqueElement;};
+
+let module CreateDOMComponent (D: {let tag: string;}) :DOMComponent => {
+  let tag = D.tag;
+  let make children => {
+    let element = DOMElement tag;
+    OpaqueElement {form: element, children}
   };
 };
 
-let createElement tag props children =>
-  Js.Unsafe.meth_call
-    react
-    "createElement"
-    [|Js.Unsafe.inject (Js.string tag), Js.Unsafe.inject props, Js.Unsafe.inject children|];
-
-let create_class renderer getInitialStater => {
-  let comp_opts = Js.Unsafe.obj [|
-    ("render", Js.Unsafe.inject (Js.wrap_meth_callback renderer)),
-    ("getInitialState", Js.Unsafe.inject (Js.wrap_callback getInitialStater))
-  |];
-  Js.Unsafe.meth_call react "createClass" [|comp_opts|]
+let module Stateless (M: {type props;}) => {
+  type props = M.props;
+  type state = unit;
+  let getInitialState: props => state = fun p => ();
+  let componentWillMount: reactInstance props state => state = fun this => ();
 };
 
-let make_component comp opts => {
-  let opt = Js.Unsafe.inject (Js.Unsafe.obj opts);
-  Js.Unsafe.meth_call react "createElement" [|comp, opt|]
+/* let module Stateful (M: {type props; type state;}) => { */
+/*   include M; */
+/*   let getInitialState: props => state = fun p => (); */
+/*   let componentWillMount: reactInstance props state => state = fun this => (); */
+/* }; */
+module type ComponentSpec = {
+  type props;
+  type state;
+  let getInitialState: props => state;
+  let componentWillMount: reactInstance props state => state;
+  let render: reactInstance props state => opaqueElement;
 };
 
 module type Component = {
   type props;
-  type underlyingJsProps;
-  let props_to_js: props => underlyingJsProps;
-  let props_from_js: underlyingJsProps => props;
   type state;
-  type underlyingJsState;
-  let state_to_js: state => underlyingJsState;
-  let state_from_js: underlyingJsState => state;
-  let render: props => state => ((state => 'a => state) => unit => unit) => component;
-  let getInitialState: unit => state;
+  let getInitialState: props => state;
+  let componentWillMount: reactInstance props state => state;
+  let render: reactInstance props state => opaqueElement;
+  let createInstanceFromElement: elementDescription props state => opaqueReactInstance;
+  let make: props => list opaqueElement => opaqueElement;
 };
 
-let make_element c => Js.Unsafe.meth_call react "createElement" [|Js.Unsafe.inject c|];
-
-module type ReactClass = {type state; type props; let make: props => component;};
-
-let module CreateComponent (C: Component) :(ReactClass with type props = C.props) => {
-  type state = C.state;
-  type props = C.props;
-  let render_callback this => {
-    let react_props = Js.Unsafe.get this "props";
-    let js_reason_props = Js.Unsafe.get react_props "reason$props";
-    let reason_props = C.props_from_js js_reason_props;
-    let react_state = Js.Unsafe.get this "state";
-    let js_reason_state = Js.Unsafe.get react_state "reason$state";
-    let reason_state = C.state_from_js js_reason_state;
-    let updater f => {
-      /* let st = Js.Unsafe.obj [|("counter", Js.Unsafe.inject (Js.string "maax"))|]; */
-      let react_state = Js.Unsafe.get this "state";
-      let js_reason_state = Js.Unsafe.get react_state "reason$state";
-      let reason_state = C.state_from_js js_reason_state;
-      let g x => {
-        /* Js.Unsafe.meth_call this "setState" [|st|]; */
-        /* let react_props = Js.Unsafe.get this "state";
-           let js_reason_props = Js.Unsafe.get react_props "reason$state";
-           let count = Js.Unsafe.get js_reason_props "counter"; */
-        let res = f reason_state x;
-        let newCounter = Js.Unsafe.inject (C.state_to_js res); /*Js.Unsafe.obj [|("counter", Js.Unsafe.inject 50)|];*/
-        let st = Js.Unsafe.obj [|("reason$state", newCounter)|];
-        /* let window = Js.Unsafe.js_expr "window";
-           Js.Unsafe.set window "mama" this; */
-        Js.Unsafe.meth_call this "setState" [|st|]
-        /* print_endline  (Js.Unsafe.fun_call stringify [|Js.Unsafe.js_expr "{counter: 20}"|]); */
-      };
-      g
+let module CreateComponent
+           (Component: ComponentSpec)
+           :(Component with type props = Component.props) => {
+  include Component;
+  let createInstanceFromElement: elementDescription props state => opaqueReactInstance =
+    fun {initProps, getInitialState} =>
+      OpaqueInstance {props: initProps, state: getInitialState initProps};
+  let make props children => {
+    let description: elementDescription props state = {
+      initProps: props,
+      getInitialState,
+      componentWillMount,
+      render,
+      createInstanceFromElement
     };
-    C.render reason_props reason_state updater
+    let element = ReactElement description;
+    OpaqueElement {form: element, children}
   };
-  let getInitialState_callback this => Js.Unsafe.obj [|
-    ("reason$state", Js.Unsafe.inject (C.state_to_js (C.getInitialState ())))
-  |];
-  let react_class = create_class render_callback getInitialState_callback;
-  let make props =>
-    make_component react_class [|("reason$props", Js.Unsafe.inject (C.props_to_js props))|];
 };
+
+let module DOM = {
+  let module H3 = CreateDOMComponent {
+    let tag = "h3";
+  };
+  let module Div = CreateDOMComponent {
+    let tag = "div";
+  };
+};
+
+let render: opaqueElement => string =
+  fun tree => {
+    let rec render' node =>
+      switch node {
+      | OpaqueElement unpackedElement =>
+        let {form, children} = unpackedElement;
+        switch form {
+        | DOMElement tag =>
+          let renderedChildren = String.concat "" (List.map (fun s => render' s) children);
+          String.concat "" ["<", tag, ">", renderedChildren, "</", tag, ">"]
+        | TextNode text => text
+        | ReactElement description =>
+          let instance = {
+            props: description.initProps,
+            state: description.getInitialState description.initProps
+          };
+          let instance = {
+            props: description.initProps,
+            state: description.componentWillMount instance
+          };
+          let node = description.render instance;
+          render' node
+        }
+      };
+    render' tree
+  };
