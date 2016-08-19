@@ -16,5 +16,8 @@
     "jengaboot": "*",
     "react": "^15.1.0",
     "react-dom": "^15.1.0"
+  },
+  "dependencies": {
+    "bs-platform": "^0.9.3"
   }
 }
