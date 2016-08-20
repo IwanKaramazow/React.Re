@@ -7,3 +7,6 @@ src/_build
 *.cmj
 backup.re
 Backup2.re
+src/index.native
+src/test.re
+resources/bundle.js
