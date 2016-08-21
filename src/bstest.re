@@ -1,9 +1,9 @@
 let module React = {
-  type obj;
+  /* type obj;
   type eventDOM;
   type event = | OnClick;
   type eventHandler = {handler: 'e .'e => unit};
-  type inlineStyle = | Style 'a :inlineStyle;
+  type inlineStyle = | Style 'a :inlineStyle; */
   type opaqueJsProps = | Props 'jsProps :opaqueJsProps | Nothing :opaqueJsProps;
   type domElement = {
     tag: string,
@@ -31,31 +31,34 @@ let module React = {
     componentWillUnmount: reactInstance 'props 'state 'callbacks => unit,
     render: reactInstance 'props 'state 'callbacks => opaqueElement,
     createInstanceFromJs:
-      'props => 'state => ('state => unit) => 'callbacks => reactInstance 'props 'state 'callbacks,
-    /* 'props => 'state => r 'props 'state => reactInstance 'props 'state, */
+      'e .
+      'props =>
+      'state =>
+      ('state => unit) =>
+      'callbacks =>
+      makeUpdater 'props 'state 'callbacks =>
+      reactInstance 'props 'state 'callbacks,
+
     createStateFromJs: 'state => 'state,
     createPropsFromJs: 'props => 'props,
     createCallbacksFromJs: 'callbacks => 'callbacks
-    /* createUpdaterInstanceFromJs: 'props => 'state => updaterInstance 'props 'state */
   }
   and form 'props 'state 'callbacks =
     | DOMElement domElement
     | ReactElement (elementDescription 'props 'state 'callbacks)
     | TextNode string
-  /* TODO unify updaterInstance & reactInstance */
-  /* and updaterInstance 'props 'state = {pprops: 'props, sstate: 'state} */
-  and r 'props 'state 'callbacks = {
-    apply: 'a .(reactInstance 'props 'state 'callbacks => 'a => 'state) => 'a => unit
-  }
   and reactInstance 'props 'state 'callbacks = {
     props: 'props,
     state: 'state,
     setState: 'state => unit,
-    callbacks: 'callbacks
-    /* updater: 'a .(reactInstance 'props 'state => 'a => unit) => 'a => unit */
+    callbacks: 'callbacks,
+    updater: 'a .(reactInstance 'props 'state 'callbacks => 'a => 'state) => 'a => unit
   } /* updater: r 'props 'state */
   /* opaqueReactInstance => Gadt wrapped descriptor, helpfull when returning GADTs that hide their heterogeneous types */
-  and opaqueReactInstance = | OpaqueInstance (reactInstance 'p 's 'c) :opaqueReactInstance;
+  and opaqueReactInstance = | OpaqueInstance (reactInstance 'p 's 'c) :opaqueReactInstance
+  and makeUpdater 'props 'state 'callbacks = {
+    z: 'e .(reactInstance 'props 'state 'callbacks => 'e => 'state) => 'e => unit
+  };
   /* let unpack: opaqueElement => element = fun opaque => sw */
   /*type opaqueElement is a GADT wrapped descriptor, helpfull when returning GADTs that hide their heterogeneous types */
   let module Text = {
@@ -205,7 +208,6 @@ let module React = {
     type callbacks = unit;
     let getInitialState: props => state = fun p => ();
     let getCallbacks: unit => callbacks = fun () => ();
-
   };
   let module Stateful
              (M: {type props; type state;})
@@ -241,7 +243,13 @@ let module React = {
                 Component with type props = Component.props and type callbacks = Component.callbacks
               ) => {
     include Component;
-    let createInstanceFromJs props state setState callbacks => {props, state, setState, callbacks};
+    let createInstanceFromJs props state setState callbacks {z} => {
+      props,
+      state,
+      setState,
+      callbacks,
+      updater: z
+    };
     let createPropsFromJs props => props;
     let createStateFromJs state => state;
     let createStateFromJs state => state;
@@ -274,45 +282,45 @@ let module React = {
       }
     };
   };
-  let module Stateful'
-             (Component: ComponentSpec)
-             :(
-                Component with type props = Component.props and type callbacks = Component.callbacks
-              ) => {
-    include Component;
-    let createInstanceFromJs props state setState callbacks => {props, state, setState, callbacks};
-    let createPropsFromJs props => props;
-    let createStateFromJs state => state;
-    let createStateFromJs state => state;
-    let createCallbacksFromJs cb => cb;
-    /* let createUpdaterInstanceFromJs props state => {pprops: props, sstate: state}; */
-    let make children::children=? props::props => {
-      let description: elementDescription props state callbacks = {
-        initProps: props,
-        getInitialState,
-        getCallbacks,
-        componentWillMount,
-        componentDidMount,
-        componentWillReceiveProps,
-        shouldComponentUpdate,
-        componentWillUpdate,
-        componentDidUpdate,
-        componentWillUnmount,
-        render,
-        /* createInstanceFromElement, */
-        createInstanceFromJs,
-        createStateFromJs,
-        createPropsFromJs,
-        createCallbacksFromJs
-        /* createUpdaterInstanceFromJs */
-      };
-      let element = ReactElement description;
-      switch children {
-      | None => OpaqueElement {form: element, children: []}
-      | Some children => OpaqueElement {form: element, children}
-      }
-    };
-  };
+  /* let module Stateful'
+                (Component: ComponentSpec)
+                :(
+                   Component with type props = Component.props and type callbacks = Component.callbacks
+                 ) => {
+       include Component;
+       let createInstanceFromJs props state setState callbacks updater => {props, state, setState, callbacks, updater};
+       let createPropsFromJs props => props;
+       let createStateFromJs state => state;
+       let createStateFromJs state => state;
+       let createCallbacksFromJs cb => cb;
+       /* let createUpdaterInstanceFromJs props state => {pprops: props, sstate: state}; */
+       let make children::children=? props::props => {
+         let description: elementDescription props state callbacks = {
+           initProps: props,
+           getInitialState,
+           getCallbacks,
+           componentWillMount,
+           componentDidMount,
+           componentWillReceiveProps,
+           shouldComponentUpdate,
+           componentWillUpdate,
+           componentDidUpdate,
+           componentWillUnmount,
+           render,
+           /* createInstanceFromElement, */
+           createInstanceFromJs,
+           createStateFromJs,
+           createPropsFromJs,
+           createCallbacksFromJs
+           /* createUpdaterInstanceFromJs */
+         };
+         let element = ReactElement description;
+         switch children {
+         | None => OpaqueElement {form: element, children: []}
+         | Some children => OpaqueElement {form: element, children}
+         }
+       };
+     }; */
   let module DOM = {
     let module H3 = CreateDOMComponent {
       let tag = "h3";
@@ -449,22 +457,25 @@ let module UserItem = CreateComponent {
     type props = userItemProps;
   };
   /* type callbacks = unit;
-  let getCallbacks () => ();
-  let shouldComponentUpdate nextProps _ {props} => {
-    Js.log "======";
-    Js.log nextProps;
-    Js.log props;
-    Js.log nextProps != props;
-    Js.log "======";
-    nextProps != props;
-  }; */
-  let render {props: {user, onUserClick}} => {
-    Js.log "rerender";
-    Js.log user;
+     let getCallbacks () => ();
+     let shouldComponentUpdate nextProps _ {props} => {
+       Js.log "======";
+       Js.log nextProps;
+       Js.log props;
+       Js.log nextProps != props;
+       Js.log "======";
+       nextProps != props;
+     }; */
+  /* let shouldComponentUpdate nextProps nextState instance => {
+       Js.log "should update";
+       Js.log nextProps;
+       Js.log instance;
+       true
+     }; */
+  let render {props: {user, onUserClick}} =>
     /* DOM.Li.make onClick::(fun _ => onUserClick user) [Text.make ("Name: " ^ user.name)]; */
     DOM.Li.make
       props::[%bs.obj {onClick: fun _ => onUserClick user}] [Text.make ("Name: " ^ user.name)];
-    };
 };
 
 type userPanelState = {selectedUser: option user};
@@ -478,36 +489,28 @@ let module UserPanel = CreateComponent {
   };
   type callbacks = {
     selectUser: reactInstance props state callbacks => user => unit,
-    deselect: reactInstance props state callbacks => unit => unit
+    deselect: reactInstance props state callbacks => unit => state
   };
   let getCallbacks () => {
     selectUser: fun {setState} user => {
       let nextState = {selectedUser: Some user};
       setState nextState
     },
-    deselect: fun {setState} () => setState {selectedUser: None}
+    deselect: fun _ _ => {selectedUser: None}
+  };
+  let updateUser {state} user => {
+    let nextState = {selectedUser: Some user};
+    nextState
   };
   let getInitialState _ => {selectedUser: None};
-  let render instance => {
-    let {props, state: {selectedUser}, callbacks: {selectUser, deselect}} = instance;
-    DOM.Div.make [
-      DOM.H3.make [Text.make "User Panel:"],
-      DOM.Ul.make (
-        List.map
-          (
-            fun user => UserItem.make {
-              user,
-              /* onUserClick: selectUser */
-              onUserClick: fun user => selectUser instance user
-            }
-          )
-          props
-      ),
-      UserDetail.make selectedUser,
-      DOM.Button.make
-        props::[%bs.obj {onClick: fun _ => deselect instance ()}] [Text.make "Deselect user"]
-    ]
-  };
+  let render {props, state: {selectedUser}, updater, callbacks: {selectUser, deselect}} => DOM.Div.make [
+    DOM.H3.make [Text.make "User Panel:"],
+    DOM.Ul.make (
+      List.map (fun user => UserItem.make {user, onUserClick: updater updateUser}) props
+    ),
+    UserDetail.make selectedUser,
+    DOM.Button.make props::[%bs.obj {onClick: updater deselect}] [Text.make "Deselect user"]
+  ];
 };
 
 type titleProps = string;
@@ -545,6 +548,7 @@ let module ReactDOM = {
   external initJsState : reasonmlState::'a =>
                          reasonmlSetState::'b =>
                          reasonmlCallbacks::'c =>
+                         reasonmlUpdater::'d =>
                          jsState = "" [@@bs.obj];
   external initState : 'jsThis => 'state => 'setState => 'callbacks => 'makeInstance => unit = "initState" [@@bs.val] [@@bs.module
                                                                     "./polyfill.js"
@@ -556,6 +560,7 @@ let module ReactDOM = {
   external getReasonmlState : 'a => 'b = "reasonmlState" [@@bs.get];
   external getReasonmlSetState : 'a => 'b = "reasonmlSetState" [@@bs.get];
   external getReasonmlCallbacks : 'a => 'b = "reasonmlCallbacks" [@@bs.get];
+  external getReasonmlUpdater : 'a => 'b = "reasonmlUpdater" [@@bs.get];
   external getProps : 'a => 'b = "props" [@@bs.get];
   external getReasonmlProps : 'a => 'b = "reasonmlProps" [@@bs.get];
   external makeClassNameProps : className::string? => onClick::'a? => unit => jsProps = "" [@@bs.obj];
@@ -604,29 +609,26 @@ let module ReactDOM = {
               let mlState = getReasonmlState jsState;
               let mlSetState = getReasonmlSetState jsState;
               let mlCallbacks = getReasonmlCallbacks jsState;
-              /* let rec createUpdater () f => {
-                   let handler event => {
-                     let nextState =
-                       f
-                         (
-                           description.createInstanceFromJs
-                             props state {apply: fun f => createUpdater f}
-                         )
-                         event;
-                     setState reactJsThis (makeJsState nextState)
-                   };
-                   handler
-                 }; */
-              description.createInstanceFromJs props mlState mlSetState mlCallbacks
-              /* {apply: fun f => createUpdater f} */
+              let mlUpdater = getReasonmlUpdater jsState;
+              let instance =
+                description.createInstanceFromJs
+                  props mlState mlSetState mlCallbacks {z: mlUpdater};
+              instance
             };
             let spec =
               {
                 method getInitialState props => {
                   let st = description.getInitialState description.initProps;
                   let cbs = description.getCallbacks ();
-                  initJsState st (fun s => setState this (makeJsState s)) cbs
-                  /* initState this st (fun s => setState this (makeJsState s)) cbs makeInstance; */
+                  let updater f => {
+                    let updater' anything => {
+                      let instance = makeInstance this;
+                      let nextState = f instance anything;
+                      setState this (makeJsState nextState)
+                    };
+                    updater'
+                  };
+                  initJsState st (fun s => setState this (makeJsState s)) cbs updater
                 };
                 method componentWillMount () => description.componentWillMount (makeInstance this);
                 method componentDidMount () => description.componentDidMount (makeInstance this);
@@ -635,18 +637,18 @@ let module ReactDOM = {
                   description.componentWillReceiveProps nextProps (makeInstance this)
                 };
                 method shouldComponentUpdate nextProps nextState => {
-                  let nextProps = description.createPropsFromJs nextProps;
-                  let nextState = description.createStateFromJs nextState;
+                  let nextProps = description.createPropsFromJs (getReasonmlProps nextProps);
+                  let nextState = description.createStateFromJs (getReasonmlState nextState);
                   description.shouldComponentUpdate nextProps nextState (makeInstance this)
                 };
                 method componentWillUpdate nextProps nextState => {
-                  let nextProps = description.createPropsFromJs nextProps;
-                  let nextState = description.createStateFromJs nextState;
+                  let nextProps = description.createPropsFromJs (getReasonmlProps nextProps);
+                  let nextState = description.createStateFromJs (getReasonmlState nextState);
                   description.componentWillUpdate nextProps nextState (makeInstance this)
                 };
                 method componentDidUpdate prevProps prevState => {
-                  let prevProps = description.createPropsFromJs prevProps;
-                  let prevState = description.createStateFromJs prevState;
+                  let prevProps = description.createPropsFromJs (getReasonmlProps prevProps);
+                  let prevState = description.createStateFromJs (getReasonmlState prevState);
                   description.componentDidUpdate prevProps prevState (makeInstance this)
                 };
                 method componentWillUnmount () => description.componentWillUnmount (

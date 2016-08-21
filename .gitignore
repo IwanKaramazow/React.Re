@@ -10,3 +10,6 @@ Backup2.re
 src/index.native
 src/test.re
 resources/bundle.js
+src/ReactML.js
+lala.re
+test.re
