@@ -1,9 +1,9 @@
 let module React = {
   /* type obj;
-  type eventDOM;
-  type event = | OnClick;
-  type eventHandler = {handler: 'e .'e => unit};
-  type inlineStyle = | Style 'a :inlineStyle; */
+     type eventDOM;
+     type event = | OnClick;
+     type eventHandler = {handler: 'e .'e => unit};
+     type inlineStyle = | Style 'a :inlineStyle; */
   type opaqueJsProps = | Props 'jsProps :opaqueJsProps | Nothing :opaqueJsProps;
   type domElement = {
     tag: string,
@@ -377,50 +377,29 @@ type counterProps = {initialCount: int};
 
 type counterState = {count: int};
 
-/* let module Counter = CreateComponent {
-     include Stateful {
-       type props = counterProps;
-       type state = counterState;
-       type callback
-     };
-     let handleUpClick {state: {count}} event => {
-       let nextState = {count: count + 1};
-       nextState
-     };
-     let handleDownClick {state: {count}} _ => {count: count - 1};
-     let computeDown currentCount => {count: currentCount - 1};
-     let handleClick _ => Js.log "Just log to the console";
-     let handleDoubleClick _ => Js.log "Just clicked 2x";
-     let getInitialState {initialCount} => {count: initialCount};
-     let componentWillMount {state, setState} => setState {count: state.count + 100};
-     let componentDidMount _ => Js.log "mounted the counter!";
-     let computeUp currentCount => {count: currentCount + 1};
-     let render {props: {initialCount}, state: {count}, setState} => DOM.Div.make [
-       DOM.Div.make [Text.make ("Initial count (from props): " ^ string_of_int initialCount)],
-       DOM.Div.make [Text.make ("Current count (state): " ^ string_of_int count)],
-       DOM.Button.make
-         props::[%bs.obj {onClick: fun _ => setState (computeUp count)}] [Text.make "Up!"],
-       DOM.Button.make
-         props::[%bs.obj {onClick: fun _ => setState (computeDown count)}] [Text.make "Down!"],
-       DOM.Button.make
-         props::[%bs.obj
-           {onClick: handleClick, onDoubleClick: handleDoubleClick, onMouseOver: handleClick}
-         ]
-         [Text.make "Do not click here!"]
-     ];
-     /* let render {props: {initialCount}, state: {count}, updater} => DOM.Div.make [
-          DOM.Div.make
-            style::style [Text.make ("Initial count (from props): " ^ string_of_int initialCount)],
-          DOM.Div.make [Text.make ("Current count (state): " ^ string_of_int count)],
-          DOM.Button.make events::[("onClick", updater.apply handleUpClick)] [Text.make "Up!"],
-          DOM.Button.make events::[("onClick", updater.apply handleDownClick)] [Text.make "Down!"],
-          DOM.Button.make
-            style::(Style [%bs.obj {color: "red", border: "1px solid blue"}])
-            events::[("onClick", handleClick), ("onDoubleClick", handleDoubleClick)]
-            [Text.make "Do not click here!"],
+let module Counter = CreateComponent {
+  include Stateful {
+    type props = counterProps;
+    type state = counterState;
+  };
+  type callbacks = {
+    handleUpClick: reactInstance props state callbacks => unit => state,
+    handleDownClick: reactInstance props state callbacks => unit => state
+  };
+  let getCallbacks () => {
+    handleUpClick: fun {state: {count}} _ => {count: count + 1},
+    handleDownClick: fun {state: {count}} _ => {count: count - 1}
+  };
+  let getInitialState {initialCount} => {count: initialCount};
+  let componentWillMount {state, setState} => setState {count: state.count + 100};
+  let render {props: {initialCount}, state: {count}, callbacks: {handleUpClick, handleDownClick}} => DOM.Div.make [
+    DOM.Div.make [Text.make ("Initial count (from props): " ^ string_of_int initialCount)],
+    DOM.Div.make [Text.make ("Current count (state): " ^ string_of_int count)],
+    DOM.Button.make props::[%bs.obj {onClick: handleUpClick}] [Text.make "Up!"],
+    DOM.Button.make props::[%bs.obj {onClick: handleDownClick}] [Text.make "Down!"]
+  ];
+};
 
-        ]; */
-   }; */
 let module Birthday = {
   type t = {day: int, month: int, year: int};
   let make day::day month::month year::year => {day, month, year};
@@ -438,6 +417,11 @@ let userList = [
 let module UserDetail = CreateComponent {
   include Stateless {
     type props = option user;
+  };
+  let shouldComponentUpdate nextProps _ {props} => {
+    Js.log nextProps;
+    Js.log props;
+    false
   };
   let render {props} => {
     let message =
@@ -466,16 +450,12 @@ let module UserItem = CreateComponent {
        Js.log "======";
        nextProps != props;
      }; */
-  /* let shouldComponentUpdate nextProps nextState instance => {
-       Js.log "should update";
-       Js.log nextProps;
-       Js.log instance;
-       true
-     }; */
-  let render {props: {user, onUserClick}} =>
-    /* DOM.Li.make onClick::(fun _ => onUserClick user) [Text.make ("Name: " ^ user.name)]; */
-    DOM.Li.make
-      props::[%bs.obj {onClick: fun _ => onUserClick user}] [Text.make ("Name: " ^ user.name)];
+  let componentDidMount _ => Js.log "component Did MOunt!";
+  let shouldComponentUpdate nextProps nextState instance => {
+    Js.log nextProps;
+    true
+  };
+  let render {props: {user, onUserClick}} => DOM.Li.make [Text.make ("Name: " ^ user.name)];
 };
 
 type userPanelState = {selectedUser: option user};
@@ -489,27 +469,34 @@ let module UserPanel = CreateComponent {
   };
   type callbacks = {
     selectUser: reactInstance props state callbacks => user => unit,
-    deselect: reactInstance props state callbacks => unit => state
+    deselect: reactInstance props state callbacks => unit => state,
+    selectRandomUser: reactInstance props state callbacks => unit => state
   };
   let getCallbacks () => {
     selectUser: fun {setState} user => {
       let nextState = {selectedUser: Some user};
       setState nextState
     },
-    deselect: fun _ _ => {selectedUser: None}
+    deselect: fun _ _ => {selectedUser: None},
+    selectRandomUser: fun {props} _ => {
+      let random = List.nth props (Random.int (List.length props));
+      {selectedUser: Some random}
+    }
   };
   let updateUser {state} user => {
     let nextState = {selectedUser: Some user};
     nextState
   };
   let getInitialState _ => {selectedUser: None};
-  let render {props, state: {selectedUser}, updater, callbacks: {selectUser, deselect}} => DOM.Div.make [
+  let render
+      {props, state: {selectedUser}, updater, callbacks: {selectUser, deselect, selectRandomUser}} => DOM.Div.make [
     DOM.H3.make [Text.make "User Panel:"],
     DOM.Ul.make (
       List.map (fun user => UserItem.make {user, onUserClick: updater updateUser}) props
     ),
     UserDetail.make selectedUser,
-    DOM.Button.make props::[%bs.obj {onClick: updater deselect}] [Text.make "Deselect user"]
+    DOM.Button.make props::[%bs.obj {onClick: deselect}] [Text.make "Deselect user"],
+    DOM.Button.make props::[%bs.obj {onClick: selectRandomUser}] [Text.make "Select random user"]
   ];
 };
 
@@ -530,13 +517,13 @@ external getElementById : string => domNode = "document.getElementById" [@@bs.va
 let module ReactDOM = {
   type reactJsElement;
   type reactJsClass;
-  external createElement : 'elementType => 'props => 'children => reactJsElement = "createElement" [@@bs.val] [@@bs.module
+  external createElement : 'elementType => 'props => 'children => 'reactJsElement = "createElement" [@@bs.val] [@@bs.module
                                                                     "./polyfill.js"
                                                                     ];
-  external bindCallbacks : 'callbacks => 'jsThis => 'bound = "bindCallbacks" [@@bs.val] [@@bs.module
+  external bindCallbacks : 'callbacks => 'makeUpdater => 'curriedCallbacks = "bindCallbacks" [@@bs.val] [@@bs.module
                                                                     "./polyfill.js"
                                                                     ];
-  external render : reactJsElement => domNode => unit = "render" [@@bs.val] [@@bs.module
+  external render : 'reactJsElement => domNode => unit = "render" [@@bs.val] [@@bs.module
                                                                     "react-dom"
                                                                     ];
   external createClass : 'classSpec => reactJsClass = "createClass" [@@bs.val] [@@bs.module
@@ -600,7 +587,7 @@ let module ReactDOM = {
              }
            } */
         /* applyChildren createElementFn Js.Null.empty tag Js.Null.empty jsChildren */
-        | TextNode text => createElement "span" Js.Null.empty text
+        | TextNode text => text
         | ReactElement description =>
           let description_to_reactClass description => {
             let makeInstance reactJsThis => {
@@ -618,6 +605,7 @@ let module ReactDOM = {
             let spec =
               {
                 method getInitialState props => {
+                  Js.log "get initial state";
                   let st = description.getInitialState description.initProps;
                   let cbs = description.getCallbacks ();
                   let updater f => {
@@ -628,12 +616,13 @@ let module ReactDOM = {
                     };
                     updater'
                   };
-                  initJsState st (fun s => setState this (makeJsState s)) cbs updater
+                  initJsState
+                    st (fun s => setState this (makeJsState s)) (bindCallbacks cbs updater) updater
                 };
                 method componentWillMount () => description.componentWillMount (makeInstance this);
                 method componentDidMount () => description.componentDidMount (makeInstance this);
                 method componentWillReceiveProps nextProps => {
-                  let nextProps = description.createPropsFromJs nextProps;
+                  let nextProps = description.createPropsFromJs (getReasonmlProps nextProps);
                   description.componentWillReceiveProps nextProps (makeInstance this)
                 };
                 method shouldComponentUpdate nextProps nextState => {
@@ -670,8 +659,8 @@ let module ReactDOM = {
 };
 
 let app = DOM.Div.make [
-  /* Title.make "Counter",
-     Counter.make {initialCount: 0}, */
+  Title.make "Counter",
+  Counter.make {initialCount: 0},
   UserPanel.make userList
 ];
 

@@ -1,14 +1,15 @@
 // GENERATED CODE BY BUCKLESCRIPT VERSION 0.9.3 , PLEASE EDIT WITH CARE
 'use strict';
 
-var React                    = require("react");
 var Pervasives               = require("bs-platform/lib/js/pervasives");
-var $dot$slashpolyfill$dotjs = require("./polyfill.js");
+var ReactDom                 = require("react-dom");
 var Block                    = require("bs-platform/lib/js/block");
+var React                    = require("react");
 var Curry                    = require("bs-platform/lib/js/curry");
 var $$Array                  = require("bs-platform/lib/js/array");
-var ReactDom                 = require("react-dom");
 var List                     = require("bs-platform/lib/js/list");
+var $dot$slashpolyfill$dotjs = require("./polyfill.js");
+var Random                   = require("bs-platform/lib/js/random");
 
 function make(t) {
   return /* OpaqueElement */[/* record */[
@@ -296,7 +297,133 @@ var React$1 = /* module */[
   /* DOM */DOM
 ];
 
-function make$6(day, month, year) {
+function getCallbacks() {
+  return /* record */[
+          /* handleUpClick */function (param, _) {
+            return /* record */[/* count */param[/* state */1][/* count */0] + 1 | 0];
+          },
+          /* handleDownClick */function (param, _) {
+            return /* record */[/* count */param[/* state */1][/* count */0] - 1 | 0];
+          }
+        ];
+}
+
+function getInitialState(param) {
+  return /* record */[/* count */param[/* initialCount */0]];
+}
+
+function componentWillMount$1(param) {
+  return Curry._1(param[/* setState */2], /* record */[/* count */param[/* state */1][/* count */0] + 100 | 0]);
+}
+
+function render(param) {
+  var match = param[/* callbacks */3];
+  return make$2(/* None */0, /* :: */[
+              make$2(/* None */0, /* :: */[
+                    make("Initial count (from props): " + Pervasives.string_of_int(param[/* props */0][/* initialCount */0])),
+                    /* [] */0
+                  ]),
+              /* :: */[
+                make$2(/* None */0, /* :: */[
+                      make("Current count (state): " + Pervasives.string_of_int(param[/* state */1][/* count */0])),
+                      /* [] */0
+                    ]),
+                /* :: */[
+                  make$3(/* Some */[{
+                          onClick: match[/* handleUpClick */0]
+                        }], /* :: */[
+                        /* OpaqueElement */[/* record */[
+                            /* form : TextNode */Block.__(2, ["Up!"]),
+                            /* children : [] */0
+                          ]],
+                        /* [] */0
+                      ]),
+                  /* :: */[
+                    make$3(/* Some */[{
+                            onClick: match[/* handleDownClick */1]
+                          }], /* :: */[
+                          /* OpaqueElement */[/* record */[
+                              /* form : TextNode */Block.__(2, ["Down!"]),
+                              /* children : [] */0
+                            ]],
+                          /* [] */0
+                        ]),
+                    /* [] */0
+                  ]
+                ]
+              ]
+            ]);
+}
+
+function createInstanceFromJs(props, state, setState, callbacks, param) {
+  return /* record */[
+          /* props */props,
+          /* state */state,
+          /* setState */setState,
+          /* callbacks */callbacks,
+          /* updater */param[/* z */0]
+        ];
+}
+
+function createPropsFromJs(props) {
+  return props;
+}
+
+function createStateFromJs(state) {
+  return state;
+}
+
+function createCallbacksFromJs(cb) {
+  return cb;
+}
+
+function make$6(children, props) {
+  var description = /* record */[
+    /* initProps */props,
+    /* getInitialState */getInitialState,
+    /* getCallbacks */getCallbacks,
+    /* componentWillMount */componentWillMount$1,
+    /* componentDidMount */componentDidMount,
+    /* componentWillReceiveProps */componentWillReceiveProps,
+    /* shouldComponentUpdate */shouldComponentUpdate,
+    /* componentWillUpdate */componentWillUpdate,
+    /* componentDidUpdate */componentDidUpdate,
+    /* componentWillUnmount */componentWillUnmount,
+    /* render */render,
+    /* createInstanceFromJs */createInstanceFromJs,
+    /* createStateFromJs */createStateFromJs,
+    /* createPropsFromJs */createPropsFromJs,
+    /* createCallbacksFromJs */createCallbacksFromJs
+  ];
+  var element = /* ReactElement */Block.__(1, [description]);
+  if (children) {
+    return /* OpaqueElement */[/* record */[
+              /* form */element,
+              /* children */children[0]
+            ]];
+  }
+  else {
+    return /* OpaqueElement */[/* record */[
+              /* form */element,
+              /* children : [] */0
+            ]];
+  }
+}
+
+var Counter = /* module */[
+  /* getInitialState */getInitialState,
+  /* getCallbacks */getCallbacks,
+  /* componentWillMount */componentWillMount$1,
+  /* componentDidMount */componentDidMount,
+  /* componentWillReceiveProps */componentWillReceiveProps,
+  /* shouldComponentUpdate */shouldComponentUpdate,
+  /* componentWillUpdate */componentWillUpdate,
+  /* componentDidUpdate */componentDidUpdate,
+  /* componentWillUnmount */componentWillUnmount,
+  /* make */make$6
+];
+
+function make$7(day, month, year) {
   return /* record */[
           /* day */day,
           /* month */month,
@@ -309,7 +436,7 @@ function pprint(param) {
 }
 
 var Birthday = /* module */[
-  /* make */make$6,
+  /* make */make$7,
   /* pprint */pprint
 ];
 
@@ -341,15 +468,21 @@ var userList = /* :: */[
   userList_001
 ];
 
-function getInitialState() {
+function getInitialState$1() {
   return /* () */0;
 }
 
-function getCallbacks() {
+function getCallbacks$1() {
   return /* () */0;
 }
 
-function render(param) {
+function shouldComponentUpdate$1(nextProps, _, param) {
+  console.log(nextProps);
+  console.log(param[/* props */0]);
+  return /* false */0;
+}
+
+function render$1(param) {
   var props = param[/* props */0];
   var message;
   if (props) {
@@ -374,96 +507,6 @@ function render(param) {
                     ]),
                 /* [] */0
               ]
-            ]);
-}
-
-function createInstanceFromJs(props, state, setState, callbacks, param) {
-  return /* record */[
-          /* props */props,
-          /* state */state,
-          /* setState */setState,
-          /* callbacks */callbacks,
-          /* updater */param[/* z */0]
-        ];
-}
-
-function createPropsFromJs(props) {
-  return props;
-}
-
-function createStateFromJs(state) {
-  return state;
-}
-
-function createCallbacksFromJs(cb) {
-  return cb;
-}
-
-function make$7(children, props) {
-  var description = /* record */[
-    /* initProps */props,
-    /* getInitialState */getInitialState,
-    /* getCallbacks */getCallbacks,
-    /* componentWillMount */componentWillMount,
-    /* componentDidMount */componentDidMount,
-    /* componentWillReceiveProps */componentWillReceiveProps,
-    /* shouldComponentUpdate */shouldComponentUpdate,
-    /* componentWillUpdate */componentWillUpdate,
-    /* componentDidUpdate */componentDidUpdate,
-    /* componentWillUnmount */componentWillUnmount,
-    /* render */render,
-    /* createInstanceFromJs */createInstanceFromJs,
-    /* createStateFromJs */createStateFromJs,
-    /* createPropsFromJs */createPropsFromJs,
-    /* createCallbacksFromJs */createCallbacksFromJs
-  ];
-  var element = /* ReactElement */Block.__(1, [description]);
-  if (children) {
-    return /* OpaqueElement */[/* record */[
-              /* form */element,
-              /* children */children[0]
-            ]];
-  }
-  else {
-    return /* OpaqueElement */[/* record */[
-              /* form */element,
-              /* children : [] */0
-            ]];
-  }
-}
-
-var UserDetail = /* module */[
-  /* getInitialState */getInitialState,
-  /* getCallbacks */getCallbacks,
-  /* componentWillMount */componentWillMount,
-  /* componentDidMount */componentDidMount,
-  /* componentWillReceiveProps */componentWillReceiveProps,
-  /* shouldComponentUpdate */shouldComponentUpdate,
-  /* componentWillUpdate */componentWillUpdate,
-  /* componentDidUpdate */componentDidUpdate,
-  /* componentWillUnmount */componentWillUnmount,
-  /* make */make$7
-];
-
-function getInitialState$1() {
-  return /* () */0;
-}
-
-function getCallbacks$1() {
-  return /* () */0;
-}
-
-function render$1(param) {
-  var match = param[/* props */0];
-  var onUserClick = match[/* onUserClick */1];
-  var user = match[/* user */0];
-  return make$5(/* Some */[{
-                onClick: function () {
-                  return Curry._1(onUserClick, user);
-                }
-              }], /* :: */[
-              make("Name: " + user[/* name */1]),
-              /* [] */0
             ]);
 }
 
@@ -497,7 +540,7 @@ function make$8(children, props) {
     /* componentWillMount */componentWillMount,
     /* componentDidMount */componentDidMount,
     /* componentWillReceiveProps */componentWillReceiveProps,
-    /* shouldComponentUpdate */shouldComponentUpdate,
+    /* shouldComponentUpdate */shouldComponentUpdate$1,
     /* componentWillUpdate */componentWillUpdate,
     /* componentDidUpdate */componentDidUpdate,
     /* componentWillUnmount */componentWillUnmount,
@@ -522,71 +565,41 @@ function make$8(children, props) {
   }
 }
 
-var UserItem = /* module */[
+var UserDetail = /* module */[
   /* getInitialState */getInitialState$1,
   /* getCallbacks */getCallbacks$1,
   /* componentWillMount */componentWillMount,
   /* componentDidMount */componentDidMount,
   /* componentWillReceiveProps */componentWillReceiveProps,
-  /* shouldComponentUpdate */shouldComponentUpdate,
+  /* shouldComponentUpdate */shouldComponentUpdate$1,
   /* componentWillUpdate */componentWillUpdate,
   /* componentDidUpdate */componentDidUpdate,
   /* componentWillUnmount */componentWillUnmount,
   /* make */make$8
 ];
 
-function getCallbacks$2() {
-  return /* record */[
-          /* selectUser */function (param, user) {
-            return Curry._1(param[/* setState */2], /* record */[/* selectedUser : Some */[user]]);
-          },
-          /* deselect */function (_, _$1) {
-            return /* record */[/* selectedUser : None */0];
-          }
-        ];
-}
-
-function updateUser(_, user) {
-  return /* record */[/* selectedUser : Some */[user]];
-}
-
 function getInitialState$2() {
-  return /* record */[/* selectedUser : None */0];
+  return /* () */0;
+}
+
+function getCallbacks$2() {
+  return /* () */0;
+}
+
+function componentDidMount$1() {
+  console.log("component Did MOunt!");
+  return /* () */0;
+}
+
+function shouldComponentUpdate$2(nextProps, _, _$1) {
+  console.log(nextProps);
+  return /* true */1;
 }
 
 function render$2(param) {
-  var updater = param[/* updater */4];
-  return make$2(/* None */0, /* :: */[
-              make$1(/* None */0, /* :: */[
-                    /* OpaqueElement */[/* record */[
-                        /* form : TextNode */Block.__(2, ["User Panel:"]),
-                        /* children : [] */0
-                      ]],
-                    /* [] */0
-                  ]),
-              /* :: */[
-                make$4(/* None */0, List.map(function (user) {
-                          return make$8(/* None */0, /* record */[
-                                      /* user */user,
-                                      /* onUserClick */Curry._1(updater, updateUser)
-                                    ]);
-                        }, param[/* props */0])),
-                /* :: */[
-                  make$7(/* None */0, param[/* state */1][/* selectedUser */0]),
-                  /* :: */[
-                    make$3(/* Some */[{
-                            onClick: Curry._1(updater, param[/* callbacks */3][/* deselect */1])
-                          }], /* :: */[
-                          /* OpaqueElement */[/* record */[
-                              /* form : TextNode */Block.__(2, ["Deselect user"]),
-                              /* children : [] */0
-                            ]],
-                          /* [] */0
-                        ]),
-                    /* [] */0
-                  ]
-                ]
-              ]
+  return make$5(/* None */0, /* :: */[
+              make("Name: " + param[/* props */0][/* user */0][/* name */1]),
+              /* [] */0
             ]);
 }
 
@@ -618,9 +631,9 @@ function make$9(children, props) {
     /* getInitialState */getInitialState$2,
     /* getCallbacks */getCallbacks$2,
     /* componentWillMount */componentWillMount,
-    /* componentDidMount */componentDidMount,
+    /* componentDidMount */componentDidMount$1,
     /* componentWillReceiveProps */componentWillReceiveProps,
-    /* shouldComponentUpdate */shouldComponentUpdate,
+    /* shouldComponentUpdate */shouldComponentUpdate$2,
     /* componentWillUpdate */componentWillUpdate,
     /* componentDidUpdate */componentDidUpdate,
     /* componentWillUnmount */componentWillUnmount,
@@ -645,31 +658,88 @@ function make$9(children, props) {
   }
 }
 
-var UserPanel = /* module */[
+var UserItem = /* module */[
   /* getInitialState */getInitialState$2,
   /* getCallbacks */getCallbacks$2,
   /* componentWillMount */componentWillMount,
-  /* componentDidMount */componentDidMount,
+  /* componentDidMount */componentDidMount$1,
   /* componentWillReceiveProps */componentWillReceiveProps,
-  /* shouldComponentUpdate */shouldComponentUpdate,
+  /* shouldComponentUpdate */shouldComponentUpdate$2,
   /* componentWillUpdate */componentWillUpdate,
   /* componentDidUpdate */componentDidUpdate,
   /* componentWillUnmount */componentWillUnmount,
   /* make */make$9
 ];
 
-function getInitialState$3() {
-  return /* () */0;
+function getCallbacks$3() {
+  return /* record */[
+          /* selectUser */function (param, user) {
+            return Curry._1(param[/* setState */2], /* record */[/* selectedUser : Some */[user]]);
+          },
+          /* deselect */function (_, _$1) {
+            return /* record */[/* selectedUser : None */0];
+          },
+          /* selectRandomUser */function (param, _) {
+            var props = param[/* props */0];
+            var random = List.nth(props, Random.$$int(List.length(props)));
+            return /* record */[/* selectedUser : Some */[random]];
+          }
+        ];
 }
 
-function getCallbacks$3() {
-  return /* () */0;
+function updateUser(_, user) {
+  return /* record */[/* selectedUser : Some */[user]];
+}
+
+function getInitialState$3() {
+  return /* record */[/* selectedUser : None */0];
 }
 
 function render$3(param) {
-  return make$1(/* None */0, /* :: */[
-              make("Title: " + param[/* props */0]),
-              /* [] */0
+  var updater = param[/* updater */4];
+  var match = param[/* callbacks */3];
+  return make$2(/* None */0, /* :: */[
+              make$1(/* None */0, /* :: */[
+                    /* OpaqueElement */[/* record */[
+                        /* form : TextNode */Block.__(2, ["User Panel:"]),
+                        /* children : [] */0
+                      ]],
+                    /* [] */0
+                  ]),
+              /* :: */[
+                make$4(/* None */0, List.map(function (user) {
+                          return make$9(/* None */0, /* record */[
+                                      /* user */user,
+                                      /* onUserClick */Curry._1(updater, updateUser)
+                                    ]);
+                        }, param[/* props */0])),
+                /* :: */[
+                  make$8(/* None */0, param[/* state */1][/* selectedUser */0]),
+                  /* :: */[
+                    make$3(/* Some */[{
+                            onClick: match[/* deselect */1]
+                          }], /* :: */[
+                          /* OpaqueElement */[/* record */[
+                              /* form : TextNode */Block.__(2, ["Deselect user"]),
+                              /* children : [] */0
+                            ]],
+                          /* [] */0
+                        ]),
+                    /* :: */[
+                      make$3(/* Some */[{
+                              onClick: match[/* selectRandomUser */2]
+                            }], /* :: */[
+                            /* OpaqueElement */[/* record */[
+                                /* form : TextNode */Block.__(2, ["Select random user"]),
+                                /* children : [] */0
+                              ]],
+                            /* [] */0
+                          ]),
+                      /* [] */0
+                    ]
+                  ]
+                ]
+              ]
             ]);
 }
 
@@ -728,7 +798,7 @@ function make$10(children, props) {
   }
 }
 
-var Title = /* module */[
+var UserPanel = /* module */[
   /* getInitialState */getInitialState$3,
   /* getCallbacks */getCallbacks$3,
   /* componentWillMount */componentWillMount,
@@ -739,6 +809,89 @@ var Title = /* module */[
   /* componentDidUpdate */componentDidUpdate,
   /* componentWillUnmount */componentWillUnmount,
   /* make */make$10
+];
+
+function getInitialState$4() {
+  return /* () */0;
+}
+
+function getCallbacks$4() {
+  return /* () */0;
+}
+
+function render$4(param) {
+  return make$1(/* None */0, /* :: */[
+              make("Title: " + param[/* props */0]),
+              /* [] */0
+            ]);
+}
+
+function createInstanceFromJs$4(props, state, setState, callbacks, param) {
+  return /* record */[
+          /* props */props,
+          /* state */state,
+          /* setState */setState,
+          /* callbacks */callbacks,
+          /* updater */param[/* z */0]
+        ];
+}
+
+function createPropsFromJs$4(props) {
+  return props;
+}
+
+function createStateFromJs$4(state) {
+  return state;
+}
+
+function createCallbacksFromJs$4(cb) {
+  return cb;
+}
+
+function make$11(children, props) {
+  var description = /* record */[
+    /* initProps */props,
+    /* getInitialState */getInitialState$4,
+    /* getCallbacks */getCallbacks$4,
+    /* componentWillMount */componentWillMount,
+    /* componentDidMount */componentDidMount,
+    /* componentWillReceiveProps */componentWillReceiveProps,
+    /* shouldComponentUpdate */shouldComponentUpdate,
+    /* componentWillUpdate */componentWillUpdate,
+    /* componentDidUpdate */componentDidUpdate,
+    /* componentWillUnmount */componentWillUnmount,
+    /* render */render$4,
+    /* createInstanceFromJs */createInstanceFromJs$4,
+    /* createStateFromJs */createStateFromJs$4,
+    /* createPropsFromJs */createPropsFromJs$4,
+    /* createCallbacksFromJs */createCallbacksFromJs$4
+  ];
+  var element = /* ReactElement */Block.__(1, [description]);
+  if (children) {
+    return /* OpaqueElement */[/* record */[
+              /* form */element,
+              /* children */children[0]
+            ]];
+  }
+  else {
+    return /* OpaqueElement */[/* record */[
+              /* form */element,
+              /* children : [] */0
+            ]];
+  }
+}
+
+var Title = /* module */[
+  /* getInitialState */getInitialState$4,
+  /* getCallbacks */getCallbacks$4,
+  /* componentWillMount */componentWillMount,
+  /* componentDidMount */componentDidMount,
+  /* componentWillReceiveProps */componentWillReceiveProps,
+  /* shouldComponentUpdate */shouldComponentUpdate,
+  /* componentWillUpdate */componentWillUpdate,
+  /* componentDidUpdate */componentDidUpdate,
+  /* componentWillUnmount */componentWillUnmount,
+  /* make */make$11
 ];
 
 function buildJsTree(tree) {
@@ -772,6 +925,7 @@ function buildJsTree(tree) {
             return React.createClass({
                         getInitialState: function () {
                           var $$this = this ;
+                          console.log("get initial state");
                           var st = Curry._1(description[/* getInitialState */1], description[/* initProps */0]);
                           var cbs = Curry._1(description[/* getCallbacks */2], /* () */0);
                           var updater = function (f) {
@@ -790,7 +944,7 @@ function buildJsTree(tree) {
                                                 reasonmlState: s
                                               });
                                   },
-                                  reasonmlCallbacks: cbs,
+                                  reasonmlCallbacks: $dot$slashpolyfill$dotjs.bindCallbacks(cbs, updater),
                                   reasonmlUpdater: updater
                                 };
                         },
@@ -804,7 +958,7 @@ function buildJsTree(tree) {
                         },
                         componentWillReceiveProps: function (nextProps) {
                           var $$this = this ;
-                          var nextProps$1 = Curry._1(description[/* createPropsFromJs */13], nextProps);
+                          var nextProps$1 = Curry._1(description[/* createPropsFromJs */13], nextProps.reasonmlProps);
                           return Curry._2(description[/* componentWillReceiveProps */5], nextProps$1, makeInstance($$this));
                         },
                         shouldComponentUpdate: function (nextProps, nextState) {
@@ -841,26 +995,32 @@ function buildJsTree(tree) {
           var reactClass = description_to_reactClass(description);
           return $dot$slashpolyfill$dotjs.createElement(reactClass, jsProps, null);
       case 2 : 
-          return $dot$slashpolyfill$dotjs.createElement("span", null, form[0]);
+          return form[0];
       
     }
   };
   return build(tree);
 }
 
-function render$4(component, node) {
+function render$5(component, node) {
   ReactDom.render(buildJsTree(component), node);
   return /* () */0;
 }
 
 var ReactDOM = /* module */[
   /* buildJsTree */buildJsTree,
-  /* render */render$4
+  /* render */render$5
 ];
 
 var app = make$2(/* None */0, /* :: */[
-      make$9(/* None */0, userList),
-      /* [] */0
+      make$11(/* None */0, "Counter"),
+      /* :: */[
+        make$6(/* None */0, /* record */[/* initialCount */0]),
+        /* :: */[
+          make$10(/* None */0, userList),
+          /* [] */0
+        ]
+      ]
     ]);
 
 var rootNode = document.getElementById("app");
@@ -868,6 +1028,7 @@ var rootNode = document.getElementById("app");
 ReactDom.render(buildJsTree(app), rootNode);
 
 exports.React      = React$1;
+exports.Counter    = Counter;
 exports.Birthday   = Birthday;
 exports.userList   = userList;
 exports.UserDetail = UserDetail;
